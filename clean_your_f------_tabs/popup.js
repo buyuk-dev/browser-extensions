@@ -1,3 +1,4 @@
 document.getElementById('organize-btn').addEventListener('click', () => {
-  chrome.runtime.sendMessage({ action: "reorganize_tabs" });
+  console.log("Button clicked, sending message to background script");
+  chrome.runtime.sendMessage({ action: "organize_tabs" });
 });

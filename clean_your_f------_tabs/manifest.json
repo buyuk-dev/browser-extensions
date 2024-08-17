@@ -1,10 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Tab Organizer with GPT",
+  "name": "Smart Tab Organizer with GPT",
   "version": "1.0",
   "permissions": [
     "tabs",
-    "tabGroups"
+    "tabGroups",
+    "activeTab",
+    "storage"
   ],
   "background": {
     "service_worker": "background.js"

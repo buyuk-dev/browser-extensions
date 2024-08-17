@@ -1,7 +1,17 @@
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "organize_tabs") {
+    organizeTabs();
+  }
+});
+
+chrome.action.onClicked.addListener(() => {
+  console.log("Extension icon clicked, keeping service worker alive.");
+});
+
 async function getAllTabsAndGroups() {
   const tabs = await chrome.tabs.query({});
   const groups = await chrome.tabGroups.query({});
-  
+
   let tabData = tabs.map(tab => ({
     id: tab.id,
     title: tab.title,
@@ -36,18 +46,19 @@ async function sendToGPT(tabStructure) {
   return JSON.parse(data.choices[0].text);
 }
 
-async function reorganizeTabs() {
-  const { tabData, groupData } = await getAllTabsAndGroups();
-  const newStructure = await sendToGPT({ tabData, groupData });
+async function organizeTabs() {
+  try {
+    const { tabData, groupData } = await getAllTabsAndGroups();
+    const newStructure = await sendToGPT({ tabData, groupData });
 
-  // Apply the new structure
-  for (const group of newStructure.tab_groups) {
-    const groupId = await chrome.tabGroups.create({ title: group.name });
-    for (const tab of group.tabs) {
-      await chrome.tabs.move(tab.id, { index: -1 });
-      await chrome.tabs.group({ tabIds: tab.id, groupId: groupId });
+    for (const group of newStructure.tab_groups) {
+      const groupId = await chrome.tabGroups.create({ title: group.name });
+      for (const tab of group.tabs) {
+        await chrome.tabs.move(tab.id, { index: -1 });
+        await chrome.tabs.group({ tabIds: tab.id, groupId: groupId });
+      }
     }
+  } catch (error) {
+    console.error("An error occurred while organizing tabs:", error);
   }
 }
-
-chrome.action.onClicked.addListener(reorganizeTabs);
